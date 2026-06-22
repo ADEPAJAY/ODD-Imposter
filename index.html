@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Odd One Out</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<div id="app">
+
+  <!-- ═══════════════════════════════════════════
+       SCREEN 1 — HOME
+  ═══════════════════════════════════════════ -->
+  <section id="screen-home" class="screen active">
+    <div class="home-hero">
+      <div class="spy-icon">🕵️</div>
+      <h1>Odd One Out</h1>
+      <p class="tagline">Everyone gets the same word — except one.<br/>Find the imposter. Don't get fooled.</p>
+    </div>
+
+    <div class="card">
+      <h2>Create a Lobby</h2>
+      <input id="hostName" type="text" placeholder="Your name" maxlength="20" autocomplete="off" />
+      <button id="btnCreateLobby" class="btn-primary">Create Lobby</button>
+    </div>
+
+    <div class="divider">— or —</div>
+
+    <div class="card">
+      <h2>Join a Lobby</h2>
+      <input id="joinName" type="text" placeholder="Your name" maxlength="20" autocomplete="off" />
+      <input id="joinCode" type="text" placeholder="Lobby code (e.g. AB12)" maxlength="6" autocomplete="off" class="code-input" />
+      <button id="btnJoinLobby" class="btn-primary">Join Lobby</button>
+    </div>
+
+    <p id="homeError" class="error-msg"></p>
+    <p class="footnote">3–10 players · Physical gathering · No login needed</p>
+  </section>
+
+  <!-- ═══════════════════════════════════════════
+       SCREEN 2 — LOBBY
+  ═══════════════════════════════════════════ -->
+  <section id="screen-lobby" class="screen">
+    <div class="lobby-header">
+      <h1>Lobby</h1>
+      <div class="code-badge">
+        <span class="code-label">CODE</span>
+        <span id="lobbyCodeDisplay" class="code-value">----</span>
+        <button id="btnCopyCode" class="btn-icon" title="Copy code">📋</button>
+      </div>
+    </div>
+
+    <p class="subtitle">Share this code with friends. Gather in person first!</p>
+
+    <div class="card">
+      <div class="card-header">
+        <h2>Players</h2>
+        <span id="playerCount" class="badge">0 / 10</span>
+      </div>
+      <ul id="playerList" class="player-list"></ul>
+    </div>
+
+    <!-- HOST SETTINGS (only visible to host) -->
+    <div class="card" id="hostSettingsCard" style="display:none">
+      <h2>⚙️ Game Settings</h2>
+
+      <div class="setting-group">
+        <label>Word Category</label>
+        <select id="wordCategory">
+          <option value="all">🎲 All Categories (Mix)</option>
+          <option value="food">🍕 Food & Drinks</option>
+          <option value="places">📍 Places</option>
+          <option value="objects">🧰 Everyday Objects</option>
+          <option value="animals">🐾 Animals</option>
+          <option value="movies">🎬 Movies & Shows</option>
+          <option value="custom">✏️ Custom Words</option>
+        </select>
+      </div>
+
+      <div id="customWordsBox" class="setting-group" style="display:none">
+        <label>Custom Word Pairs <span class="hint-text">(one pair per line, comma separated)</span></label>
+        <textarea id="customWords" rows="5" placeholder="Example:&#10;Beach, Desert&#10;Pizza, Burger&#10;Hyderabad, Bangalore"></textarea>
+      </div>
+
+      <div class="setting-group">
+        <label>Odd Players <span class="hint-text">(how many get the different word)</span></label>
+        <select id="oddCount">
+          <option value="1">1 Odd One Out (Classic)</option>
+          <option value="2">2 Odd Ones Out</option>
+        </select>
+      </div>
+
+      <div class="setting-group">
+        <label>Discussion Timer</label>
+        <select id="timerSetting">
+          <option value="0">⏸️ No Timer (manual control)</option>
+          <option value="60">⏱️ 1 minute</option>
+          <option value="120" selected>⏱️ 2 minutes</option>
+          <option value="180">⏱️ 3 minutes</option>
+          <option value="300">⏱️ 5 minutes</option>
+        </select>
+      </div>
+
+      <div class="setting-group">
+        <label>Voting Timer</label>
+        <select id="votingTimerSetting">
+          <option value="0">⏸️ No Timer</option>
+          <option value="30">⏱️ 30 seconds</option>
+          <option value="60" selected>⏱️ 1 minute</option>
+          <option value="90">⏱️ 90 seconds</option>
+        </select>
+      </div>
+
+      <div class="setting-group">
+        <label>After Elimination, Reveal</label>
+        <select id="revealMode">
+          <option value="word">Both players' words (full reveal)</option>
+          <option value="identity">Just who it was (no word)</option>
+          <option value="none">Nothing — stay mysterious 👻</option>
+        </select>
+      </div>
+
+      <button id="btnStartGame" class="btn-primary btn-large">🚀 Start Game</button>
+      <p class="hint-text center">Need at least 3 players to start</p>
+    </div>
+
+    <!-- GUEST WAITING MESSAGE -->
+    <div class="card" id="guestWaitCard" style="display:none">
+      <p class="waiting-msg">⏳ Waiting for the host to start the game...</p>
+    </div>
+
+    <p id="lobbyError" class="error-msg"></p>
+    <button id="btnLeaveLobby" class="btn-ghost">← Leave Lobby</button>
+  </section>
+
+  <!-- ═══════════════════════════════════════════
+       SCREEN 3 — WORD REVEAL
+  ═══════════════════════════════════════════ -->
+  <section id="screen-word" class="screen">
+    <h1>Round <span id="roundNumber">1</span></h1>
+    <p class="subtitle">Look at your word privately. Don't show anyone!</p>
+
+    <div class="word-reveal-card" id="wordRevealCard">
+      <p class="tap-hint">👆 Tap to reveal your word</p>
+      <div id="wordBlurOverlay" class="word-blur-overlay">TAP TO REVEAL</div>
+      <div id="yourWord" class="your-word">???</div>
+      <p class="word-warning">⚠️ Keep your screen hidden from others!</p>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h3>Players Ready</h3>
+        <span id="readyCountBadge" class="badge">0 ready</span>
+      </div>
+      <ul id="readyList" class="player-list small"></ul>
+    </div>
+
+    <button id="btnReady" class="btn-primary">✅ I've Seen It — Ready</button>
+    <p id="wordScreenHint" class="hint-text center"></p>
+  </section>
+
+  <!-- ═══════════════════════════════════════════
+       SCREEN 4 — DISCUSSION
+  ═══════════════════════════════════════════ -->
+  <section id="screen-discussion" class="screen">
+    <div class="phase-header phase-discuss">
+      <span class="phase-label">💬 Discussion</span>
+      <span class="round-tag">Round <span id="roundNumberDisc">1</span></span>
+    </div>
+
+    <p class="subtitle">Talk to each other. Figure out who has the odd word!</p>
+
+    <div class="timer-block" id="timerBlock">
+      <div id="timerDisplay" class="timer-display">--:--</div>
+      <div id="timerBar" class="timer-bar"><div id="timerBarFill" class="timer-bar-fill"></div></div>
+    </div>
+
+    <!-- Host controls -->
+    <div class="card" id="hostDiscControls" style="display:none">
+      <div class="control-row">
+        <button id="btnPauseTimer" class="btn-secondary">⏸ Pause</button>
+        <button id="btnResumeTimer" class="btn-secondary" style="display:none">▶ Resume</button>
+        <button id="btnSkipToVote" class="btn-primary">🗳️ Go to Vote</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Still in the game</h3>
+      <ul id="aliveListDiscussion" class="player-list"></ul>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════
+       SCREEN 5 — VOTING
+  ═══════════════════════════════════════════ -->
+  <section id="screen-voting" class="screen">
+    <div class="phase-header phase-vote">
+      <span class="phase-label">🗳️ Voting</span>
+      <span class="round-tag">Round <span id="roundNumberVote">1</span></span>
+    </div>
+
+    <p class="subtitle">Who do you think has the odd word?</p>
+
+    <div class="timer-block" id="voteTimerBlock">
+      <div id="votingTimerDisplay" class="timer-display small-timer">--:--</div>
+      <div id="voteTimerBar" class="timer-bar"><div id="voteTimerBarFill" class="timer-bar-fill vote-bar"></div></div>
+    </div>
+
+    <div class="card" id="myVoteCard">
+      <h3>Your Vote</h3>
+      <ul id="voteOptions" class="vote-list"></ul>
+      <p id="myVoteStatus" class="hint-text"></p>
+    </div>
+
+    <!-- Host vote controls -->
+    <div class="card" id="hostVoteControls" style="display:none">
+      <div class="vote-progress">
+        <span id="voteCountStatus" class="vote-count-text"></span>
+        <div id="voteProgressBar" class="mini-progress"><div id="voteProgressFill" class="mini-progress-fill"></div></div>
+      </div>
+      <button id="btnForceTally" class="btn-primary">Tally Votes Now →</button>
+    </div>
+
+    <p id="votingError" class="error-msg"></p>
+  </section>
+
+  <!-- ═══════════════════════════════════════════
+       SCREEN 6 — ROUND RESULT
+  ═══════════════════════════════════════════ -->
+  <section id="screen-result" class="screen">
+    <h1>Round Result</h1>
+
+    <div class="result-card" id="resultCard">
+      <!-- Populated by JS -->
+    </div>
+
+    <div class="card" id="scoreCard">
+      <h3>🏆 Scoreboard</h3>
+      <ul id="scoreList" class="player-list"></ul>
+    </div>
+
+    <!-- Game Over -->
+    <div class="card win-card" id="gameOverCard" style="display:none">
+      <div id="gameOverEmoji" class="win-emoji"></div>
+      <h2 id="gameOverTitle"></h2>
+      <p id="gameOverDetail"></p>
+    </div>
+
+    <!-- Host controls -->
+    <div id="hostResultControls" style="display:none">
+      <button id="btnNextRound" class="btn-primary btn-large">Next Round →</button>
+      <button id="btnEndGame" class="btn-ghost">End Game</button>
+    </div>
+
+    <button id="btnBackToLobby" class="btn-ghost" style="display:none">↩ Back to Lobby</button>
+  </section>
+
+</div>
+
+<!-- Firebase (CDN) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+
+<!-- Game files -->
+<script src="words.js"></script>
+<script src="firebase-config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
