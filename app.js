@@ -749,14 +749,32 @@ function goToResult(lobby) {
 
   let revealHtml = '';
   if (reveal === 'word') {
-    revealHtml = `
-      <div class="word-reveal-result">
-        Everyone's word: <span>${result.majorityWord || '?'}</span><br/>
-        ${result.eliminatedName}'s word: <span>${result.eliminatedWord || '?'}</span>
-      </div>`;
-  } else if (reveal === 'identity') {
-    revealHtml = `<div class="word-reveal-result">${result.eliminatedName} was ${result.wasOdd ? 'the Odd One' : 'a normal player'}.</div>`;
-  }
+
+  const oddPlayers = Object.entries(lobby.wordAssignments || {})
+    .filter(([id, data]) => data.isOdd)
+    .map(([id]) => lobby.players[id]?.name || 'Unknown');
+
+  revealHtml = `
+    <div class="word-reveal-result">
+      Everyone's word: <span>${result.majorityWord || '?'}</span><br/>
+      Odd Word: <span>${result.oddWord || '?'}</span><br/>
+      Odd Player(s): <span>${oddPlayers.join(', ')}</span><br/>
+      ${result.eliminatedName}'s word: <span>${result.eliminatedWord || '?'}</span>
+    </div>`;
+    
+} else if (reveal === 'identity') {
+
+  const oddPlayers = Object.entries(lobby.wordAssignments || {})
+    .filter(([id, data]) => data.isOdd)
+    .map(([id]) => lobby.players[id]?.name || 'Unknown');
+
+  revealHtml = `
+    <div class="word-reveal-result">
+      ${result.eliminatedName} was ${result.wasOdd ? 'the Odd One' : 'a normal player'}.
+      <br/>
+      Odd Player(s): <strong>${oddPlayers.join(', ')}</strong>
+    </div>`;
+}
 
   card.innerHTML = `
     <p class="result-label">Eliminated</p>
