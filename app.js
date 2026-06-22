@@ -332,10 +332,18 @@ async function startGame() {
 // WORD REVEAL SCREEN
 // ══════════════════════════════════════════════════════════════════
 function goToWordReveal(lobby) {
-  if (state.currentScreen === 'wordReveal') {
-    updateReadyList(lobby);
-    return;
+
+if (state.currentScreen === 'word') {
+  const readyBtn = document.getElementById('btnReady');
+  if (readyBtn) {
+    readyBtn.disabled = false;
+    readyBtn.textContent = "✅ I've Seen It — Ready";
   }
+
+  state.myReady = false;
+  updateReadyList(lobby);
+  return;
+}
 
   stopAllTimers();
   showScreen('word');
@@ -362,8 +370,14 @@ function goToWordReveal(lobby) {
     }
   };
 
-  updateReadyList(lobby);
-  state.myReady = false;
+const readyBtn = document.getElementById('btnReady');
+if (readyBtn) {
+  readyBtn.disabled = false;
+  readyBtn.textContent = "✅ I've Seen It — Ready";
+}
+
+state.myReady = false;
+updateReadyList(lobby);
 }
 
 function updateReadyList(lobby) {
@@ -663,6 +677,8 @@ async function tallyVotes() {
   }
 
   const wasOdd = assignments[eliminatedId]?.isOdd || false;
+  const eliminatedWord =
+  assignments[eliminatedId]?.word || '?';
 
   // Scoring: +1 to each alive player who voted correctly
   const playerUpdates = { ...players };
@@ -696,6 +712,7 @@ async function tallyVotes() {
     lastResult: {
       eliminatedId,
       eliminatedName: players[eliminatedId]?.name || '?',
+      eliminatedWord,
       wasOdd,
       tally,
       majorityWord,
@@ -735,7 +752,7 @@ function goToResult(lobby) {
     revealHtml = `
       <div class="word-reveal-result">
         Everyone's word: <span>${result.majorityWord || '?'}</span><br/>
-        ${result.eliminatedName}'s word: <span>${result.oddWord || result.majorityWord}</span>
+        ${result.eliminatedName}'s word: <span>${result.eliminatedWord || '?'}</span>
       </div>`;
   } else if (reveal === 'identity') {
     revealHtml = `<div class="word-reveal-result">${result.eliminatedName} was ${result.wasOdd ? 'the Odd One' : 'a normal player'}.</div>`;
